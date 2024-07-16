@@ -32,6 +32,18 @@ resource "azurerm_virtual_machine" "superset_vm" {
   tags = {
     environment = "development"
   }
+
+  provisioner "file" {
+    source      = "../install_docker_superset.sh"
+    destination = "/tmp/install_docker_superset.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/install_docker_superset.sh",
+      "sudo /tmp/install_docker_superset.sh"
+    ]
+  }
 }
 
 resource "azurerm_virtual_machine_extension" "docker_superset_install" {
