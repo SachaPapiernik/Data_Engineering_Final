@@ -1,0 +1,42 @@
+# Terraform specific files
+*.tfstate
+*.tfstate.*
+app.log
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+
+# Ignore override files as they are usually used to override resources locally
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# Sensitive files
+# Assuming you might store sensitive information or configurations in these files
+secrets.auto.tfvars
+credentials.auto.tfvars
+notebook/
+
+# Local environment files
+.env
+.env.*
+
+# Python specific files (if using Python scripts with Terraform)
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+
+# macOS specific files
+.DS_Store
+
+# Windows specific files
+Thumbs.db
