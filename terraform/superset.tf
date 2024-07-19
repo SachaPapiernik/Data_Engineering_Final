@@ -5,6 +5,10 @@ resource "azurerm_virtual_machine" "superset_vm" {
   network_interface_ids = [azurerm_network_interface.superset_nic.id]
   vm_size               = "Standard_B1ms"
 
+  depends_on = [
+    azurerm_storage_account.datalake
+  ]
+
   storage_os_disk {
     name              = "superset-osdisk"
     caching           = "ReadWrite"
@@ -32,10 +36,25 @@ resource "azurerm_virtual_machine" "superset_vm" {
   tags = {
     environment = "development"
   }
+}
+
+# Provision Superset
+resource "null_resource" "provision_superset" {
+  depends_on = [
+    azurerm_virtual_machine.superset_vm,
+    azurerm_public_ip.superset_ip
+  ]
 
   provisioner "file" {
     source      = "../install_docker_superset.sh"
     destination = "/tmp/install_docker_superset.sh"
+
+    connection {
+      type     = "ssh"
+      user     = var.vm_admin_username
+      password = var.vm_admin_password
+      host     = azurerm_public_ip.superset_ip.ip_address
+    }
   }
 
   provisioner "remote-exec" {
@@ -43,19 +62,12 @@ resource "azurerm_virtual_machine" "superset_vm" {
       "chmod +x /tmp/install_docker_superset.sh",
       "sudo /tmp/install_docker_superset.sh"
     ]
-  }
-}
 
-resource "azurerm_virtual_machine_extension" "docker_superset_install" {
-  name                 = "docker-superset-install"
-  virtual_machine_id   = azurerm_virtual_machine.superset_vm.id
-  publisher            = "Microsoft.Azure.Extensions"
-  type                 = "CustomScript"
-  type_handler_version = "2.0"
-
-  settings = <<SETTINGS
-    {
-      "commandToExecute": "sh -c 'apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common && curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable\" && apt-get update && apt-get install -y docker-ce && systemctl start docker && systemctl enable docker && usermod -aG docker ${var.vm_admin_username} && newgrp docker && docker run -d -p 8088:8088 --name superset apache/superset:latest'"
+    connection {
+      type     = "ssh"
+      user     = var.vm_admin_username
+      password = var.vm_admin_password
+      host     = azurerm_public_ip.superset_ip.ip_address
     }
-  SETTINGS
+  }
 }
