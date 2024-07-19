@@ -4,6 +4,11 @@
 sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common nginx openssl
 sudo apt-get install msodbcsql17
+# Install pip for Python 3
+sudo apt-get install -y python3-pip
+
+# Install required Python libraries
+pip3 install pyodbc sqlalchemy-pyodbc pymssql
 
 # Add Docker GPG key
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
@@ -46,6 +51,13 @@ sudo docker run -d -p 8088:8088 \
 
 echo "Waiting for Superset to start..."
 sleep 30
+
+sudo docker exec -it superset bash -c "
+  apt-get update && \
+  apt-get install -y python3-pip unixodbc-dev && \
+  pip3 install pyodbc sqlalchemy-pyodbc pymssql && \
+  apt-get clean
+"
 
 sudo docker exec -it superset superset fab create-admin \
     --username admin \
